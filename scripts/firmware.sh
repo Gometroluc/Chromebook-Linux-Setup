@@ -11,24 +11,41 @@ usb_device=""
 #######################
 function download_files()
 {
-	log_fn
-	local array_name=$1
-	local base_url="$2"
-	
-	# Download all files in the array
-	# Use eval for compatibility with older bash versions that don't support nameref (-n)
-	local files
-	eval "files=(\"\${${array_name}[@]}\")"
-	
-	for file in "${files[@]}"; do
-		log_section "download: ${base_url}${file}"
-		if ! $CURL -#LO "${base_url}${file}"; then
-			echo_red "Error downloading ${file}; cannot continue"
-			return 1
-		fi
-	done
-	#line break
-	echo -e ""
+    log_fn
+
+    local array_name=$1
+    local base_url=$2
+
+    eval "local count=\${#$array_name[@]}"
+
+    for ((i=0; i<count; i++)); do
+        eval "file=\${$array_name[$i]}"
+
+        echo "Downloading: ${base_url}${file}"
+
+        if ! download_as_user "${base_url}${file}" "$file"; then
+
+            echo_red "Error downloading ${file}; cannot continue"
+            return 1
+        fi
+    
+    done
+
+    echo
+}
+
+download_as_user()
+{
+    local url="$1"
+    local file="$2"
+
+    sudo -u chronos curl \
+        -fL \
+        --progress-bar \
+        -o "$file" \
+        "$url"
+
+    chown root:root "$file"
 }
 
 ###################
@@ -38,7 +55,7 @@ function flash_rwlegacy()
 {
 	log_fn
 	#set working dir
-	cd /tmp || { exit_red "Error changing to tmp dir; cannot proceed"; return 1; }
+	mkdir -p "$WORK_DIR/firmware" && cd "$WORK_DIR/firmware" || { exit_red "Error changing to firmware dir; cannot proceed"; return 1; }
 
 	# set dev mode legacy boot / AltFw flags
 	if [ "${isChromeOS}" = true ]; then
@@ -286,7 +303,7 @@ and you need to recover using an external EEPROM programmer."
 	fi
 
 	#download firmware file
-	cd /tmp || { exit_red "Error changing to tmp dir; cannot proceed"; return 1; }
+	mkdir -p "$WORK_DIR/firmware" && cd "$WORK_DIR/firmware" || { exit_red "Error changing to firmware dir; cannot proceed"; return 1; }
 	echo_yellow "\nDownloading Full ROM firmware\n(${coreboot_file})"
 	log_section "flash_full_rom: downloading ${coreboot_file}"
 	
