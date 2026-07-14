@@ -24,7 +24,7 @@ Other Chromebook models are not tested and may not work.
 Press `ctrl` + `alt` + `f2`
 The VT-2 terminal would open (`ctrl` + `alt` + `f1` to get back to the normal interface)
 
-Then navigate to the script directory (usually `~/MyFiles/Downloads/chromebook-linux-setup`)
+Then navigate to the script directory (usually `~/MyFiles/Downloads/Chromebook-Linux-Setup-main`)
 
 Run:
 
