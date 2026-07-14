@@ -1,45 +1,58 @@
 # Chromebook Linux Setup
 
-This tutorial uses a modified version of the MrChromebox Firmware Utility adapted for the Lenovo Yoga Chromebook C630
+This project provides an adapted version of the MrChromebox Firmware Utility workflow for the Lenovo Yoga Chromebook C630.
 
-## About Modification
+## About this modification
 
-The original MrChromebox script had trouble downloading its dependencies
+The original MrChromebox firmware utility had issues downloading required files correctly on the Lenovo Yoga C630 in some environments.
 
-This adaptation modifies the file layout and startup process:
+This adaptation changes only the file layout and startup process:
 
-- MrChromebox scripts are stored locally;
-- firmware utilities are kept in a separate `tools` directory;
-- the startup process uses a working copy in `/usr/local/bin`;
-- the original firmware utility logic is preserved.
+- MrChromebox utility scripts are stored locally;
+- the script runs from a local working copy;
+- the original firmware modification logic is preserved.
 
 ## Supported device
 
-Currently tested only on Lenovo Yoga Chromebook C630 (Pantheon)
+Currently tested only on:
+
+- Lenovo Yoga Chromebook C630
 
 Other Chromebook models are not tested and may not work.
 
 ## Usage
 
-Press `ctrl` + `alt` + `f2`
-The VT-2 terminal would open (`ctrl` + `alt` + `f1` to get back to the normal interface)
+1. Open the VT-2 Terminal: `ctrl` + `alt` + `f2` (Use `Ctrl + Alt + F1` to return to the ChromeOS interface)
 
-Then navigate to the script directory (usually `~/MyFiles/Downloads/Chromebook-Linux-Setup-main`)
+2. Log in as `chronos` and navigate to the script directory (usually `~/MyFiles/Downloads/Chromebook-Linux-Setup-main`)
 
-Run:
+3. Run the script:
 
 ```bash
 sudo bash CONFIGURE.sh
 ```
 
+The script may take a few seconds to initialize
+
+4. Select `Install/Update RW_LEGACY Firmware`
+
+5. Then select `SeaBIOS` or `edk2/Tianocore`
+
+6. Shut down the Chromebook
+
+7. Insert a bootable Linux USB drive
+
+8. At the `OS verification is OFF` screen, press `ctrl` + `L`
+
+9. Boot from USB and install Linux
 
 # Disclaimer
 
 This project is provided for convenience and personal use.
 
-Firmware modification can permanently damage your device if something goes wrong. Make sure you understand what the utility does before using it.
+Modifying Chromebook firmware can permanently damage your device if something goes wrong. Make sure you understand the process before using this utility.
 
-I am not responsible for any damage, data loss, or failed firmware updates.
+The author is not responsible for hardware damage, data loss, failed firmware updates, or any other issues caused by using this project.
 
 # Credits
 
