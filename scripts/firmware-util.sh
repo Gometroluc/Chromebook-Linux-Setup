@@ -13,11 +13,15 @@
 
 # shellcheck disable=SC2164
 
-#path to directory where script is saved
+#paths to directories
 script_dir="$(dirname "$(readlink -f "$0")")"
 
 PROJECT_DIR="$(cd "$script_dir/.." && pwd)"
 WORK_DIR="$PROJECT_DIR/work"
+
+mkdir -p "$WORK_DIR"
+chmod 777 "$WORK_DIR"
+
 TOOLS_DIR="$PROJECT_DIR/tools"
 
 #where the stuff is

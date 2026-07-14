@@ -44,6 +44,9 @@ ENTER_LINE=$(echo "\033[33m")
 
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TOOLS_DIR="$PROJECT_DIR/tools"
+WORK_DIR="$PROJECT_DIR/work"
+mkdir -p "$WORK_DIR"
 
 
 ########################################
@@ -77,6 +80,24 @@ function exit_red() {
 function die() {
 	echo_red "$@"
 	exit 1
+}
+
+function download_file() {
+	local url="$1"
+	local output="$2"
+
+	local tmpfile
+	tmpfile=$(mktemp)
+
+	echo "Downloading: $url"
+
+	if ! sudo -u chronos curl -fL -o "$tmpfile" "$url"; then
+		rm -f "$tmpfile"
+		return 1
+	fi
+
+	mv "$tmpfile" "$output"
+	return 0
 }
 
 ########################################
@@ -247,14 +268,26 @@ function list_usb_devices() {
 
 # Download and setup cbfstool utility if not present
 function get_cbfstool() {
-    if [ ! -f "${cbfstoolcmd}" ]; then
-        echo "cbfstool not found: ${cbfstoolcmd}"
-        return 1
-    fi
+	if [ ! -f "${cbfstoolcmd}" ]; then
+		(
+			mkdir -p "$(dirname "${cbfstoolcmd}")"
+			cd "$(dirname "${cbfstoolcmd}")" || return 1
 
-    chmod +x "${cbfstoolcmd}"
+			if ! ${CURL} -sLo cbfstool.tar.gz "${util_source}cbfstool.tar.gz"; then
+				echo_red "Error downloading cbfstool; cannot proceed."
+				return 1
+			fi
 
-    return 0
+			if ! tar -zxf cbfstool.tar.gz --no-same-owner; then
+				echo_red "Error extracting cbfstool; cannot proceed."
+				return 1
+			fi
+
+			chmod +x cbfstool
+		) || return 1
+	fi
+
+	return 0
 }
 
 # Download and setup flashrom utility if not present
@@ -273,7 +306,7 @@ function get_flashrom() {
 					util_file="flashrom_ups_int_20241214.tar.gz"
 				fi
 			fi
-			if ! ${CURL} -sLo "flashrom.tar.gz" "${util_source}${util_file}"; then
+			if ! download_file "${util_source}${util_file}" "flashrom.tar.gz"; then
 				echo_red "Error downloading flashrom; cannot proceed."
 				return 1
 			fi
@@ -308,7 +341,7 @@ function get_gbb_utility() {
 			else
 			util_file="gbb_utility.tar.gz"
 			fi
-			if ! ${CURL} -sLo "gbb_utility.tar.gz" "${util_source}${util_file}"; then
+			if ! download_file "${util_source}${util_file}" "gbb_utility.tar.gz"; then
 				echo_red "Error downloading gbb_utility; cannot proceed."
 				return 1
 			fi
@@ -330,7 +363,7 @@ function get_ectool() {
 	if [ ! -f "${ectoolcmd}" ]; then
 		(
 			cd "$(dirname "${ectoolcmd}")"
-			if ! ${CURL} -sLO "${util_source}ectool.tar.gz"; then
+			if ! download_file "${util_source}ectool.tar.gz" "ectool.tar.gz"; then
 				echo_red "Error downloading ectool; cannot proceed."
 				return 1
 			fi
@@ -353,7 +386,7 @@ function get_tpmc() {
 	if [ ! -f "${tpmccmd}" ]; then
 		(
 			cd "$(dirname "${tpmccmd}")"
-			if ! ${CURL} -sLO "${util_source}tpmc.tar.gz"; then
+			if ! download_file "${util_source}tpmc.tar.gz" "tpmc.tar.gz"; then
 				echo_red "Error downloading tpmc; cannot proceed."
 				return 1
 			fi
@@ -491,9 +524,9 @@ Run this from a Linux Live USB instead."
 		gbbutilitycmd=$(which gbb_utility)
 	else
 		#set cmds
-		flashromcmd=/tmp/flashrom
-		cbfstoolcmd=/tmp/cbfstool
-		gbbutilitycmd=/tmp/gbb_utility
+		cbfstoolcmd="$WORK_DIR/cbfstool"
+        gbbutilitycmd="$WORK_DIR/gbb_utility"
+        flashromcmd="$WORK_DIR/flashrom"
 	fi
 
 	#check if running on a musl system
