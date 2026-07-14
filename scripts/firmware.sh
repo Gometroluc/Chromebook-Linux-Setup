@@ -11,27 +11,35 @@ usb_device=""
 #######################
 function download_files()
 {
-    log_fn
+	log_fn
 
-    local array_name=$1
-    local base_url=$2
+	local array_name=$1
+	local base_url="$2"
 
-    eval "local count=\${#$array_name[@]}"
+	local files
+	eval "files=(\"\${${array_name}[@]}\")"
 
-    for ((i=0; i<count; i++)); do
-        eval "file=\${$array_name[$i]}"
+	local dl_dir="/tmp/mrchromebox-downloads"
+	mkdir -p "$dl_dir"
+	chown chronos:chronos "$dl_dir"
+	chmod 700 "$dl_dir"
 
-        echo "Downloading: ${base_url}${file}"
+	for file in "${files[@]}"; do
+		log_section "download: ${base_url}${file}"
 
-        if ! download_as_user "${base_url}${file}" "$file"; then
+		rm -f "$file"
+		rm -f "$dl_dir/$file"
 
-            echo_red "Error downloading ${file}; cannot continue"
-            return 1
-        fi
-    
-    done
+		if ! sudo -u chronos curl -fL --progress-bar -o "$dl_dir/$file" "${base_url}${file}"; then
+			echo_red "Error downloading ${file}; cannot continue"
+			rm -f "$dl_dir/$file"
+			return 1
+		fi
 
-    echo
+		mv -f "$dl_dir/$file" "$file"
+	done
+
+	echo
 }
 
 download_as_user()
